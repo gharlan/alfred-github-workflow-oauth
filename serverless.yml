@@ -1,0 +1,30 @@
+service: alfred-github-workflow-oauth
+
+provider:
+    name: aws
+    region: us-east-1
+    stage: prod
+    runtime: provided.al2
+    memorySize: 512
+    environment:
+        CLIENT_ID: ${ssm:/alfred-github-workflow-oauth/client-id}
+        CLIENT_SECRET: ${ssm:/alfred-github-workflow-oauth/client-secret}
+
+plugins:
+    - ./vendor/bref/bref
+
+functions:
+    api:
+        handler: oauth.php
+        description: ''
+        timeout: 28 # in seconds (API Gateway has a timeout of 29 seconds)
+        layers:
+            - ${bref:layer.php-81-fpm}
+        events:
+            -   httpApi: 'GET /oauth.php'
+
+# Exclude files from deployment
+package:
+    patterns:
+        - '!node_modules/**'
+        - '!tests/**'
